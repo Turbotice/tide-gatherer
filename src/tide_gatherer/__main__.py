@@ -7,6 +7,7 @@ import datetime
 import pathlib
 
 from .tide_gatherer import str_to_date
+from .tide_gatherer import work
 from .tide_gatherer import Resolution
 
 
@@ -30,8 +31,13 @@ def check_path(path: pathlib.Path):
 
 def main(args):
     check_path(args.data_path)
-    if args.target is not None:
+    if args.discover:
+        targets = sorted(args.data_path.iterdir())
+    else:
         check_date(args.year, args.target)
+        targets = sorted(args.data_path.joinpath(date) for date in args.target)
+
+    work(targets)
 
 
 if __name__ == "__main__":

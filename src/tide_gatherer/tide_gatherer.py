@@ -25,7 +25,9 @@ tz_str = "America/Montreal"
 
 url = server_url + f"/api/v1/stations/{rimouski_id}/data"
 
-year = 2024
+
+def work(paths: list[pathlib.Path]):
+    pass
 
 
 def str_to_date(date: str) -> tuple[int, int]:
