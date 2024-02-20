@@ -22,7 +22,7 @@ if __name__ == "__main__":
     mode = parser.add_argument_group("Mode", "TODO desc")
     exclusive_group = mode.add_mutually_exclusive_group(required=True)
     exclusive_group.add_argument("--discover", help="TODO")
-    exclusive_group.add_argument("--target", type=str, nargs=1, help="TODO")
+    exclusive_group.add_argument("--target", type=str, nargs="+", help="TODO")
     parser.add_argument(
         "--interactive",
         action="store_true",
@@ -35,13 +35,6 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--resolution",
-        type=int,
-        nargs="?",
-        default=1,
-        help="TODO",
-    )
-    parser.add_argument(
-        "--date",
         type=int,
         nargs="?",
         default=1,
