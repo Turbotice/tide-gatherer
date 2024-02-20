@@ -28,6 +28,11 @@ url = server_url + f"/api/v1/stations/{rimouski_id}/data"
 year = 2024
 
 
+def str_to_date(date: str) -> tuple[int, int]:
+    """Turn a mmdd string into a pair of mm, dd ints"""
+    return map(int, (date[:2], date[2:]))
+
+
 def make_df(year, month, day, timezone, resolution: Resolution):
     tz = pytz.timezone("America/Montreal")
 
