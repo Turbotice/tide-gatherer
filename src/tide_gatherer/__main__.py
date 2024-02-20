@@ -45,7 +45,7 @@ if __name__ == "__main__":
         help="Year",
     )
     mode = parser.add_argument_group("Mode", "TODO desc")
-    exclusive_group = mode.add_mutually_exclusive_group(required=False)
+    exclusive_group = mode.add_mutually_exclusive_group(required=True)
     exclusive_group.add_argument("--discover", action="store_true", help="TODO")
     exclusive_group.add_argument("--target", type=str, nargs="+", help="TODO")
     parser.add_argument(
