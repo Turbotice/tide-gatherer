@@ -7,6 +7,7 @@ import datetime
 import pathlib
 
 from .tide_gatherer import str_to_date
+from .tide_gatherer import Resolution
 
 
 def check_date(year, dates):
@@ -62,6 +63,7 @@ if __name__ == "__main__":
         type=int,
         nargs="?",
         default=1,
+        choices=[e.value for e in Resolution],
         help="TODO",
     )
     args = parser.parse_args()
