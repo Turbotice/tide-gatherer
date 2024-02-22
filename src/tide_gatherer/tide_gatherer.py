@@ -33,15 +33,16 @@ def work(
     paths: list[pathlib.Path],
     **kwargs,
 ):
+    print(kwargs)
     for _path in paths:
         stem = _path.stem
         month, day = str_to_date(stem)
         start_time, end_time = date_to_iso(year, month, day, tz_str)
 
         json = get_json(start_time, end_time, resolution, **kwargs)
-        df = make_df(json, tz_str)
+        df = make_df(json, tz_str, **kwargs)
 
-        filename = make_filename(start_time, resolution, **kwargs)
+        filename = make_filename(start_time, resolution)
         path = _path.joinpath("Marees")
         make_path(path, **kwargs)
         filepath = path.joinpath(filename)
@@ -71,8 +72,9 @@ def get_json(
         "to": end_time,
     }
     if kwargs["verbose"]:
+        date = datetime.datetime.fromisoformat(start_time).date().isoformat()
         print(
-            f"Sending request for tide data, from {payload['from']} to {payload['to']}, "
+            f"Sending request for tide data on {date} "
             f"with resolution {resolution.value} minutes"
         )
 
@@ -86,7 +88,7 @@ def make_df(
     json_content: list[dict[str, str | float | bool]], timezone: str, **kwargs
 ) -> pl.DataFrame:
     if kwargs["verbose"]:
-        print("Building dataframe from tide data")
+        print("Building dataframe")
     tz = pytz.timezone(timezone)
     df = pl.from_dict(
         dict(
