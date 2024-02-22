@@ -65,7 +65,9 @@ def str_to_date(date: str) -> Iterator[tuple[int, int]]:  # TODO: return type
     return map(int, (date[:2], date[2:]))
 
 
-def get_json(start_time, end_time, resolution: Resolution):
+def get_json(
+    start_time: str, end_time: str, resolution: Resolution
+) -> list[dict[str, str | float]]:
     payload = {
         "time-series-code": data_code,
         "resolution": resolution.name,
@@ -79,7 +81,7 @@ def get_json(start_time, end_time, resolution: Resolution):
     return r.json()
 
 
-def make_df(json: dict, timezone: str) -> pl.DataFrame:
+def make_df(json: list[dict[str, str | float]], timezone: str) -> pl.DataFrame:
     tz = pytz.timezone(timezone)
     df = pl.from_dict(
         dict(
@@ -101,11 +103,11 @@ def make_df(json: dict, timezone: str) -> pl.DataFrame:
     return df
 
 
-def make_filename(dfrom, resolution: Resolution) -> str:
+def make_filename(dfrom: str, resolution: Resolution) -> str:
     return dfrom.split("T")[0] + f"_r{resolution.value:02d}m_tides.csv"
 
 
-def date_to_iso(year: int, month: int, day: int, timezone) -> list[datetime.datetime]:
+def date_to_iso(year: int, month: int, day: int, timezone: str) -> list[str]:
     tz = pytz.timezone(timezone)
 
     return [
