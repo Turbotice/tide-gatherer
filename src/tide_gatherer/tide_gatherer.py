@@ -33,13 +33,23 @@ def work(
     paths: list[pathlib.Path],
     **kwargs,
 ):
+    tz = pytz.timezone(tz_str)
+
     for _path in paths:
         stem = _path.stem
         month, day = str_to_date(stem)
-        start_time, end_time = date_to_iso(year, month, day, tz_str)
+        start_time, end_time = date_to_iso(year, month, day, tz)
+        if not (
+            datetime.datetime.fromisoformat(end_time)
+            < tz.localize(datetime.datetime.today())
+        ):
+            if kwargs["verbose"]:
+                _d = datetime.datetime.fromisoformat(end_time).date()
+                print(f"Skipping {_d}: this day is not over yet")
+            continue
 
         json = get_json(start_time, end_time, resolution, **kwargs)
-        df = make_df(json, tz_str, **kwargs)
+        df = make_df(json, tz, **kwargs)
 
         filename = make_filename(start_time, resolution)
         path = _path.joinpath("Marees")
@@ -85,11 +95,10 @@ def get_json(
 
 
 def make_df(
-    json_content: list[dict[str, str | float | bool]], timezone: str, **kwargs
+    json_content: list[dict[str, str | float | bool]], timezone: pytz.tzfile, **kwargs
 ) -> pl.DataFrame:
     if kwargs["verbose"]:
         print("Building dataframe")
-    tz = pytz.timezone(timezone)
     df = pl.from_dict(
         dict(
             zip(
@@ -106,7 +115,9 @@ def make_df(
             )
         )
     )
-    df = df.with_columns(pl.col("date").str.to_datetime().dt.convert_time_zone(tz.zone))
+    df = df.with_columns(
+        pl.col("date").str.to_datetime().dt.convert_time_zone(timezone.zone)
+    )
     return df
 
 
@@ -114,10 +125,9 @@ def make_filename(dfrom: str, resolution: Resolution) -> str:
     return dfrom.split("T")[0] + f"_r{resolution.value:02d}m_tides.csv"
 
 
-def date_to_iso(year: int, month: int, day: int, timezone: str) -> list[str]:
-    tz = pytz.timezone(timezone)
+def date_to_iso(year: int, month: int, day: int, timezone: pytz.tzfile) -> list[str]:
     return [
-        tz.localize(
+        timezone.localize(
             datetime.datetime.strptime(f"{year}-{month}-{day} {time}", "%Y-%m-%d %H:%M")
         ).isoformat()
         for time in ("00:00", "23:59")
