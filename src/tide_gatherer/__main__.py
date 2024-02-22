@@ -29,6 +29,10 @@ def check_path(path: pathlib.Path):
         raise ValueError("The provided path should be an existing directory")
 
 
+def build_kwargs(args):
+    return {k: getattr(args, k) for k in ("dry_run", "verbose", "interactive")}
+
+
 def main(args):
     check_path(args.data_path)
     if args.discover:
@@ -37,7 +41,7 @@ def main(args):
         check_date(args.year, args.target)
         targets = sorted(args.data_path.joinpath(date) for date in args.target)
 
-    work(targets)
+    work(args.year, Resolution(args.resolution), targets, **build_kwargs(args))
 
 
 if __name__ == "__main__":
@@ -50,10 +54,20 @@ if __name__ == "__main__":
         default=2024,
         help="Year",
     )
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        nargs="?",
+        default=1,
+        choices=[e.value for e in Resolution],
+        help="TODO",
+    )
+
     mode = parser.add_argument_group("Mode", "TODO desc")
     exclusive_group = mode.add_mutually_exclusive_group(required=True)
     exclusive_group.add_argument("--discover", action="store_true", help="TODO")
     exclusive_group.add_argument("--target", type=str, nargs="+", help="TODO")
+
     parser.add_argument(
         "--interactive",
         action="store_true",
@@ -65,12 +79,10 @@ if __name__ == "__main__":
         help="TODO",
     )
     parser.add_argument(
-        "--resolution",
-        type=int,
-        nargs="?",
-        default=1,
-        choices=[e.value for e in Resolution],
+        "--dry-run",
+        action="store_true",
         help="TODO",
     )
+
     args = parser.parse_args()
     main(args)

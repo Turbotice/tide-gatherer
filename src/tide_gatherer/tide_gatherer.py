@@ -8,6 +8,7 @@ import pathlib
 import polars as pl
 import pytz
 import requests
+from typing import Iterator
 
 
 class Resolution(enum.Enum):
@@ -26,28 +27,60 @@ tz_str = "America/Montreal"
 url = server_url + f"/api/v1/stations/{rimouski_id}/data"
 
 
-def work(paths: list[pathlib.Path]):
-    pass
+# TODO: make into a proper decorator preventing FS side effects
+def dry_run(fun, kw):
+    if not kw:
+        return fun
 
 
-def str_to_date(date: str) -> tuple[int, int]:
+def work(
+    year: int,
+    resolution: Resolution,
+    paths: list[pathlib.Path],
+    **kwargs,
+):
+    for _path in paths:
+        stem = _path.stem
+        month, day = str_to_date(stem)
+        start_time, end_time = date_to_iso(year, month, day, tz_str)
+
+        json = get_json(start_time, end_time, resolution)
+        df = make_df(json, tz_str)
+
+        filename = make_filename(start_time, resolution)
+        path = _path.joinpath("Marees")
+        make_path(path, **kwargs)
+        filepath = path.joinpath(filename)
+        write_file(df, filepath, **kwargs)
+
+
+def make_path(path: pathlib.Path, **kwargs):
+    if not kwargs["dry_run"]:
+        if not path.exists():
+            path.mkdir(parents=True)
+
+
+def str_to_date(date: str) -> Iterator[tuple[int, int]]:  # TODO: return type
     """Turn a mmdd string into a pair of mm, dd ints"""
     return map(int, (date[:2], date[2:]))
 
 
-def make_df(year, month, day, timezone, resolution: Resolution):
-    tz = pytz.timezone("America/Montreal")
-
-    dfrom, dto = date_to_iso(year, month, day, timezone)
-
+def get_json(start_time, end_time, resolution: Resolution):
     payload = {
         "time-series-code": data_code,
         "resolution": resolution.name,
-        "from": dfrom,
-        "to": dto,
+        "from": start_time,
+        "to": end_time,
     }
 
     r = requests.get(url, params=payload)
+    if not r.status_code == 200:
+        raise ValueError("Request error")
+    return r.json()
+
+
+def make_df(json: dict, timezone: str) -> pl.DataFrame:
+    tz = pytz.timezone(timezone)
     df = pl.from_dict(
         dict(
             zip(
@@ -58,23 +91,21 @@ def make_df(year, month, day, timezone, resolution: Resolution):
                             _d["eventDate"],
                             _d["value"] if _d["reviewed"] else None,
                         ),
-                        r.json(),
+                        json,
                     )
                 ),
             )
         )
     )
     df = df.with_columns(pl.col("date").str.to_datetime().dt.convert_time_zone(tz.zone))
-
-    print(make_filename(dfrom, resolution))
     return df
 
 
-def make_filename(dfrom, resolution):
+def make_filename(dfrom, resolution: Resolution) -> str:
     return dfrom.split("T")[0] + f"_r{resolution.value:02d}m_tides.csv"
 
 
-def date_to_iso(year, month, day, timezone="America/Montreal"):
+def date_to_iso(year: int, month: int, day: int, timezone) -> list[datetime.datetime]:
     tz = pytz.timezone(timezone)
 
     return [
@@ -85,20 +116,8 @@ def date_to_iso(year, month, day, timezone="America/Montreal"):
     ]
 
 
-def write_file(): ...
-
-
-def discover(path: pathlib.Path):
-    for _dir in sorted(path.iterdir()):
-        stem = _dir.stem
-        if len(stem) == 4 and _dir.is_dir():
-            try:
-                int(stem)
-            except ValueError:
-                continue
-
-            month, day = map(int, (stem[:2], stem[2:]))
-            dfrom, dto = date_to_iso(year, month, day, timezone)
-
-            df = make_df(year, month, day, timezone, resolution)
-            filename = make_filename
+def write_file(df: pl.DataFrame, path: pathlib.Path, **kwargs):
+    if not kwargs["dry_run"]:
+        df.write_csv(path)
+    else:
+        print(f"Writing df to {path}")
