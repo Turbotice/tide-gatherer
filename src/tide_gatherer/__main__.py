@@ -23,7 +23,7 @@ def check_date(year, date):
         raise ValueError("Dates should be sequences of four integers")
     month, day = str_to_date(date)
     try:
-        datetime.datetime(year, month, day)
+        datetime.date(year, month, day)
     except ValueError:
         raise ValueError("The combination year, month, day should be a valid date")
 
