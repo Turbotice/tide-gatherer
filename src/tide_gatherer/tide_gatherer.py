@@ -33,7 +33,6 @@ def work(
     paths: list[pathlib.Path],
     **kwargs,
 ):
-    print(kwargs)
     for _path in paths:
         stem = _path.stem
         month, day = str_to_date(stem)
@@ -73,9 +72,10 @@ def get_json(
     }
     if kwargs["verbose"]:
         date = datetime.datetime.fromisoformat(start_time).date().isoformat()
+        duration = "minute" if resolution is Resolution.ONE_MINUTE else "minutes"
         print(
-            f"Sending request for tide data on {date} "
-            f"with resolution {resolution.value} minutes"
+            f"---\nSending request for tide data on {date} "
+            f"with resolution {resolution.value} {duration}"
         )
 
     r = requests.get(url, params=payload)

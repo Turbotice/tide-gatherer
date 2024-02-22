@@ -11,17 +11,21 @@ from .tide_gatherer import work
 from .tide_gatherer import Resolution
 
 
-def check_date(year, dates):
+def check_dates(year, dates):
     for date in dates:
-        try:
-            int(date)
-        except ValueError:
-            raise ValueError("Dates should be sequences of four integers")
-        month, day = str_to_date(date)
-        try:
-            datetime.datetime(year, month, day)
-        except ValueError:
-            raise ValueError("The combination year, month, day should be a valid date")
+        check_date(year, date)
+
+
+def check_date(year, date):
+    try:
+        int(date)
+    except ValueError:
+        raise ValueError("Dates should be sequences of four integers")
+    month, day = str_to_date(date)
+    try:
+        datetime.datetime(year, month, day)
+    except ValueError:
+        raise ValueError("The combination year, month, day should be a valid date")
 
 
 def check_path(path: pathlib.Path):
@@ -36,7 +40,13 @@ def build_kwargs(args):
 def main(args):
     check_path(args.data_path)
     if args.discover:
-        targets = sorted(args.data_path.iterdir())
+        targets = list(args.data_path.iterdir())
+        for i, target in enumerate(targets):
+            try:
+                check_date(args.year, target.stem)
+            except ValueError:
+                targets[i] = None
+        targets = sorted(filter(lambda s: s is not None, targets))
     else:
         check_date(args.year, args.target)
         targets = sorted(args.data_path.joinpath(date) for date in args.target)
