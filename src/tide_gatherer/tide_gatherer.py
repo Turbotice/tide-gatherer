@@ -9,6 +9,7 @@ import polars as pl
 import pytz
 import requests
 from typing import Iterator
+import warnings
 
 
 class Resolution(enum.Enum):
@@ -72,7 +73,8 @@ def work(
 
 def make_path(path: pathlib.Path, **kwargs):
     if kwargs["verbose"]:
-        print(f"Creating directory {path}")
+        if not path.exists():
+            print(f"Creating directory {path}")
     if not kwargs["dry_run"]:
         if not path.exists():
             path.mkdir(parents=True)
@@ -150,6 +152,8 @@ def date_to_iso(year: int, month: int, day: int, timezone: pytz.tzfile) -> list[
 
 def write_file(df: pl.DataFrame, path: pathlib.Path, **kwargs):
     if kwargs["verbose"]:
+        if path.exists():
+            warnings.warn(f"A file {path} already exists", stacklevel=1)
         print(f"Writing dataframe to {path}")
     if not kwargs["dry_run"]:
         df.write_csv(path)
