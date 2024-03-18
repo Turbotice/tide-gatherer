@@ -8,7 +8,7 @@ import pathlib
 
 from .tide_gatherer import str_to_date
 from .tide_gatherer import work
-from .tide_gatherer import Resolution
+from .tide_gatherer import Resolution, Station
 
 
 def check_dates(year, dates):
@@ -75,6 +75,14 @@ if __name__ == "__main__":
         nargs="?",
         default=1,
         choices=[e.value for e in Resolution],
+        help="TODO",
+    )
+    parser.add_argument(
+        "--station",
+        type=str,
+        nargs="?",
+        default="rmsk",
+        choices=[e.value for e in Station],
         help="TODO",
     )
 

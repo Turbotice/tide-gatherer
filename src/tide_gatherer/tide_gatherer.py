@@ -19,21 +19,33 @@ class Resolution(enum.Enum):
     SIXTY_MINUTES = 60
 
 
-rimouski_id = "5cebf1e03d0f4a073c4bbd92"
-data_code = "wlo"
-server_url = "https://api.iwls-sine.azure.cloud-nuage.dfo-mpo.gc.ca"
-tz_str = "America/Montreal"
+class Station(enum.Enum):
+    RIMOUSKI = "rmsk"
+    BAIE_STE_CATH = "bscath"
 
-url = server_url + f"/api/v1/stations/{rimouski_id}/data"
+
+IDS = {
+    Station.RIMOUSKI: "5cebf1e03d0f4a073c4bbd92",
+    Station.BAIE_STE_CATH: "5cebf1e43d0f4a073c4bc427",
+}
+
+DATA_CODE = "wlo"
+SERVER_URL = "https://api.iwls-sine.azure.cloud-nuage.dfo-mpo.gc.ca"
+EST_TZ = "America/Montreal"
+
+
+def build_url(station: Station):
+    return SERVER_URL + f"/api/v1/stations/{IDS[station]}/data"
 
 
 def work(
     year: int,
     resolution: Resolution,
+    station: Station,
     paths: list[pathlib.Path],
     **kwargs,
 ):
-    tz = pytz.timezone(tz_str)
+    tz = pytz.timezone(EST_TZ)
 
     for _path in paths:
         stem = _path.stem
@@ -48,10 +60,10 @@ def work(
                 print(f"Skipping {_d}: this day is not over yet")
             continue
 
-        json = get_json(start_time, end_time, resolution, **kwargs)
+        json = get_json(start_time, end_time, resolution, station, **kwargs)
         df = make_df(json, tz, **kwargs)
 
-        filename = make_filename(start_time, resolution)
+        filename = make_filename(start_time, resolution, station)
         path = _path.joinpath("Marees")
         make_path(path, **kwargs)
         filepath = path.joinpath(filename)
@@ -72,10 +84,11 @@ def str_to_date(date: str) -> Iterator[tuple[int, int]]:
 
 
 def get_json(
-    start_time: str, end_time: str, resolution: Resolution, **kwargs
+    start_time: str, end_time: str, resolution: Resolution, station: Station, **kwargs
 ) -> list[dict[str, str | float | bool]]:
+    url = build_url(station)
     payload = {
-        "time-series-code": data_code,
+        "time-series-code": DATA_CODE,
         "resolution": resolution.name,
         "from": start_time,
         "to": end_time,
@@ -84,7 +97,7 @@ def get_json(
         date = datetime.datetime.fromisoformat(start_time).date().isoformat()
         duration = "minute" if resolution is Resolution.ONE_MINUTE else "minutes"
         print(
-            f"---\nSending request for tide data on {date} "
+            f"---\nSending request to {url} for tide data on {date} "
             f"with resolution {resolution.value} {duration}"
         )
 
@@ -121,8 +134,9 @@ def make_df(
     return df
 
 
-def make_filename(dfrom: str, resolution: Resolution) -> str:
-    return dfrom.split("T")[0] + f"_r{resolution.value:02d}m_tides.csv"
+def make_filename(dfrom: str, resolution: Resolution, station: Station) -> str:
+    str_station = f"_{station.value}" if station != station.RIMOUSKI else ""
+    return dfrom.split("T")[0] + f"_r{resolution.value:02d}m_tides{str_station}.csv"
 
 
 def date_to_iso(year: int, month: int, day: int, timezone: pytz.tzfile) -> list[str]:
