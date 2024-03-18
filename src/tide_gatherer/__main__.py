@@ -41,17 +41,22 @@ def main(args):
     check_path(args.data_path)
     if args.discover:
         targets = list(args.data_path.iterdir())
-        for i, target in enumerate(targets):
-            try:
-                check_date(args.year, target.stem)
-            except ValueError:
-                targets[i] = None
-        targets = sorted(filter(lambda s: s is not None, targets))
     else:
-        check_date(args.year, args.target)
         targets = sorted(args.data_path.joinpath(date) for date in args.target)
+    for i, target in enumerate(targets):
+        try:
+            check_date(args.year, target.stem)
+        except ValueError:
+            targets[i] = None
+    targets = sorted(filter(lambda s: s is not None, targets))
 
-    work(args.year, Resolution(args.resolution), targets, **build_kwargs(args))
+    work(
+        args.year,
+        Resolution(args.resolution),
+        Station(args.station),
+        targets,
+        **build_kwargs(args),
+    )
 
 
 if __name__ == "__main__":
