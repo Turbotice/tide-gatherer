@@ -20,13 +20,13 @@ class Resolution(enum.Enum):
 
 
 class Station(enum.Enum):
-    RIMOUSKI = "rmsk"
     BAIE_STE_CATH = "bscath"
+    RIMOUSKI = "rmsk"
 
 
 IDS = {
-    Station.RIMOUSKI: "5cebf1e03d0f4a073c4bbd92",
     Station.BAIE_STE_CATH: "5cebf1e43d0f4a073c4bc427",
+    Station.RIMOUSKI: "5cebf1e03d0f4a073c4bbd92",
 }
 
 DATA_CODE = "wlo"
