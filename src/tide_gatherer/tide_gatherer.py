@@ -8,7 +8,7 @@ import pathlib
 import polars as pl
 import pytz
 import requests
-from typing import Callable, Iterator
+from typing import Iterator
 
 
 class Resolution(enum.Enum):
