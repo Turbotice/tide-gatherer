@@ -22,11 +22,15 @@ class Resolution(enum.Enum):
 
 class Station(enum.Enum):
     BAIE_STE_CATH = "bscath"
+    CHICOUTIMI = "cctm"
+    PORT_ALFRED = "pafd"
     RIMOUSKI = "rmsk"
 
 
 IDS = {
     Station.BAIE_STE_CATH: "5cebf1e43d0f4a073c4bc427",
+    Station.CHICOUTIMI: "5cebf1df3d0f4a073c4bbbe2",
+    Station.PORT_ALFRED: "5cebf1df3d0f4a073c4bbbc6",
     Station.RIMOUSKI: "5cebf1e03d0f4a073c4bbd92",
 }
 
