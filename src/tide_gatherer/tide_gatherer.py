@@ -110,7 +110,10 @@ def get_json(
 
     r = requests.get(url, params=payload)
     if not r.status_code == 200:
-        raise ValueError(f"Request error: url {url} with parameters {payload}")
+        raise ValueError(
+            f"Request error: url {url} with parameters {payload}. "
+            "It can be that station only provides forecasts but no observations."
+        )
     return r.json()
 
 
