@@ -4,11 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tide_gatherer"
-version = "0.1.0"
 authors = [{ name = "Nicolas Mokus", email = "nmks@tuta.io" }]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["polars", "pytz", "requests"]
+
+[tool.hatch.version]
+path = "src/tide_gatherer/__about__.py"
 
 [project.scripts]
 tide_gatherer = "tide_gatherer.__main__:main"
