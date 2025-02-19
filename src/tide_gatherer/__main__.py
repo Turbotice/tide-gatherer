@@ -6,9 +6,7 @@ import argparse
 import datetime
 import pathlib
 
-from .tide_gatherer import str_to_date
-from .tide_gatherer import work
-from .tide_gatherer import Resolution, Station
+from .tide_gatherer import Resolution, Station, str_to_date, work
 
 
 def check_dates(year, dates):
@@ -37,29 +35,7 @@ def build_kwargs(args):
     return {k: getattr(args, k) for k in ("dry_run", "verbose", "interactive")}
 
 
-def main(args):
-    check_path(args.data_path)
-    if args.discover:
-        targets = list(args.data_path.iterdir())
-    else:
-        targets = sorted(args.data_path.joinpath(date) for date in args.target)
-    for i, target in enumerate(targets):
-        try:
-            check_date(args.year, target.stem)
-        except ValueError:
-            targets[i] = None
-    targets = sorted(filter(lambda s: s is not None, targets))
-
-    work(
-        args.year,
-        Resolution(args.resolution),
-        Station(args.station),
-        targets,
-        **build_kwargs(args),
-    )
-
-
-if __name__ == "__main__":
+def parse():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("data_path", type=pathlib.Path)
     parser.add_argument(
@@ -108,4 +84,37 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    return args
     main(args)
+
+
+def do_work(args):
+    check_path(args.data_path)
+    if args.discover:
+        targets = list(args.data_path.iterdir())
+    else:
+        targets = sorted(args.data_path.joinpath(date) for date in args.target)
+    for i, target in enumerate(targets):
+        try:
+            check_date(args.year, target.stem)
+        except ValueError:
+            targets[i] = None
+    targets = sorted(filter(lambda s: s is not None, targets))
+
+    work(
+        args.year,
+        Resolution(args.resolution),
+        Station(args.station),
+        targets,
+        **build_kwargs(args),
+    )
+
+
+def main():
+    args = parse()
+    do_work(args)
+    return 0
+
+
+if __name__ == "__main__":
+    main()

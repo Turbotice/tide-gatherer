@@ -2,14 +2,15 @@
 
 """Collect tide information from marees.gc.ca"""
 
-import enum
 import datetime
+import enum
 import pathlib
+import warnings
+from typing import Iterator
+
 import polars as pl
 import pytz
 import requests
-from typing import Iterator
-import warnings
 
 
 class Resolution(enum.Enum):
@@ -23,6 +24,7 @@ class Resolution(enum.Enum):
 class Station(enum.Enum):
     BAIE_STE_CATH = "bscath"
     CHICOUTIMI = "cctm"
+    ILE_BICQUETTE = "bicq"
     PORT_ALFRED = "pafd"
     RIMOUSKI = "rmsk"
 
@@ -30,6 +32,7 @@ class Station(enum.Enum):
 IDS = {
     Station.BAIE_STE_CATH: "5cebf1e43d0f4a073c4bc427",
     Station.CHICOUTIMI: "5cebf1df3d0f4a073c4bbbe2",
+    Station.ILE_BICQUETTE: "5cebf1e23d0f4a073c4bc048",
     Station.PORT_ALFRED: "5cebf1df3d0f4a073c4bbbc6",
     Station.RIMOUSKI: "5cebf1e03d0f4a073c4bbd92",
 }
