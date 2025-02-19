@@ -41,8 +41,7 @@ def parse():
     parser.add_argument(
         "--year",
         type=int,
-        nargs="?",
-        default=2024,
+        required=True,
         help="Year",
     )
     parser.add_argument(
